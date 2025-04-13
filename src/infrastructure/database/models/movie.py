@@ -20,7 +20,7 @@ movie_genres = Table(
     Base.metadata,
     Column("movie_id", UUID(as_uuid=True),
            ForeignKey("movies.id"), primary_key=True),
-    Column("genre", String, primary_key=True),
+    Column("genre", String, ForeignKey("genres.name"), primary_key=True),
 )
 
 
