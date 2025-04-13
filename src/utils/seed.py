@@ -14,6 +14,11 @@ from src.infrastructure.database.models.user import User
 def seed_data():
     print("🌱 Seeding database with dummy data...")
     with SessionLocal() as session:
+        movie_exists = session.query(Movie).first()
+        if movie_exists:
+            print("⏭ Seed skipped: data already exists in the database.")
+            return
+
         session.query(UserMovie).delete()
         session.query(Movie).delete()
         session.query(Actor).delete()
