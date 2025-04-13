@@ -1,6 +1,8 @@
 import subprocess
 import uvicorn
 
+from src.utils import seed
+
 
 def run_migrations():
     print("🛠 Running Alembic migrations...")
@@ -15,4 +17,5 @@ def start_api():
 
 if __name__ == "__main__":
     run_migrations()
+    seed.seed_data()
     start_api()
