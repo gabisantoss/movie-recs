@@ -1,6 +1,8 @@
 import uuid
 import random
+from sqlalchemy import text
 
+from src.infrastructure.elastic.client import es
 from src.infrastructure.database.session import SessionLocal
 
 from src.infrastructure.database.models.user_movie import UserMovie
@@ -19,12 +21,8 @@ def seed_data():
             print("⏭ Seed skipped: data already exists in the database.")
             return
 
-        session.query(UserMovie).delete()
-        session.query(Movie).delete()
-        session.query(Actor).delete()
-        session.query(Director).delete()
-        session.query(Genre).delete()
-        session.query(User).delete()
+        session.execute(text(
+            "TRUNCATE TABLE user_movies, movies, actors, directors, genres, users RESTART IDENTITY CASCADE"))
         session.commit()
 
         genre_names = ["Action", "Comedy", "Drama", "Sci-Fi", "Thriller"]
@@ -60,6 +58,23 @@ def seed_data():
                 genres=random.sample(genres, k=random.randint(1, 2)),
                 actors=random.sample(actors, k=random.randint(2, 4))
             )
+            session.add(movie)
+            session.flush()
+
+            es.index(
+                index="movies",
+                doc_type="movie",
+                id=str(movie.id),
+                body={
+                    "id": str(movie.id),
+                    "name": movie.name,
+                    "average_rating": movie.average_rating,
+                    "genres": [g.name for g in movie.genres],
+                    "actors": [a.name for a in movie.actors],
+                    "director": movie.director.name if movie.director else None
+                }
+            )
+
             movies.append(movie)
         session.add_all(movies)
         session.commit()
@@ -68,8 +83,19 @@ def seed_data():
         for user in user_list:
             rated_movies = random.sample(movies, 10)
             for movie in rated_movies:
-                rating = round(random.uniform(3.0, 5.0), 1)
-                session.add(UserMovie(user_id=user.id,
-                            movie_id=movie.id, rating=rating))
+                rating_value = round(random.uniform(3.0, 5.0), 1)
+                rating = UserMovie(user_id=user.id,
+                                   movie_id=movie.id, rating=rating_value)
+                session.add(rating)
+                es.index(
+                    index="ratings",
+                    doc_type="rating",
+                    id=f"{user.id}-{movie.id}",
+                    body={
+                        "user_id": str(user.id),
+                        "movie_id": str(movie.id),
+                        "rating": rating_value
+                    }
+                )
 
         session.commit()
