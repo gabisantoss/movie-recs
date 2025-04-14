@@ -53,6 +53,33 @@ python -m src.entrypoint
 |   **GET**  | /movies/      | Retrieve all movies.     |
 |   **GET**  | /movies/recommendations | Retrieve user movie recommendations. |
 
+## 🧠 Recommendation Algorithm
+This application uses a hybrid recommendation strategy based on Elasticsearch queries, designed for scalability and simplicity without external ML models.
+
+### 🔁 Collaborative Filtering (User-Based)
+The main recommendation engine is based on user-based collaborative filtering, which works as follows:
+
+1. Fetches movies the current user has rated.
+2. Identifies users who rated the same movies (excluding the current user).
+3. Gathers movies highly rated (≥ 4.0) by those similar users, filters out already seen content, and ranks them by frequency.
+4. Retrieves full movie data for the top recommendations using Elasticsearch’s mget.
+
+### 📉 Cold Start Fallback (Top Rated)
+If the user has no rating history or no similar users are found, the system falls back to a content-based approach:
+1. Recommends movies with a high average_rating, sorted in descending order.
+2. Filters out any previously rated movies.
+
+## 🌱 Automatic Database Seeder
+To make development and testing easier, this project includes an automatic seeder that populates both the PostgreSQL database and Elasticsearch with dummy data on its entrypoint.
+
+### 🎯 Purpose
+- The seeder generates:
+    - A collection of movies with randomly assigned genres, directors, actors, and average ratings.
+    - Several users, each with randomly rated movies.
+    - Full synchronization with Elasticsearch, indexing all movies and ratings.
+
+This dummy data enables immediate testing of the recommendation algorithm without needing to manually insert records.
+
 ## 📂 Project Structure
 
 ```
@@ -91,4 +118,7 @@ ELASTICSEARCH_HOST=elasticsearch
 ELASTICSEARCH_PORT=9200
 ELASTICSEARCH_USER=elastic
 ELASTICSEARCH_PASSWORD=changeme
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=postgres
 ```
