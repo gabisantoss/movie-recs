@@ -22,7 +22,7 @@ def get_movies() -> List[dict]:
     movies = []
 
     for movie in response:
-        movies.append(movie.to_dict_summary())
+        movies.append(movie.to_dict())
 
     return movies
 

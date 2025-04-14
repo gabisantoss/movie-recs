@@ -41,40 +41,11 @@ class Movie(Base):
 
     user_ratings = relationship("UserMovie", back_populates="movie")
 
-    def to_dict_summary(self):
+    def to_dict(self):
         return {
             "id": str(self.id),
             "name": self.name,
             "average_rating": self.average_rating,
             "director": self.director.name if self.director else None,
             "genres": [genre.name for genre in self.genres]
-        }
-
-    def to_dict(self):
-        return {
-            "id": str(self.id),
-            "name": self.name,
-            "average_rating": self.average_rating,
-            "director": {
-                "id": str(self.director.id),
-                "name": self.director.name,
-            } if self.director else None,
-            "actors": [
-                {
-                    "id": str(actor.id),
-                    "name": actor.name,
-                } for actor in self.actors
-            ],
-            "genres": [
-                {
-                    "id": str(genre.id),
-                    "name": genre.name,
-                } for genre in self.genres
-            ],
-            "user_ratings": [
-                {
-                    "user_id": str(rating.user_id),
-                    "rating": rating.rating,
-                } for rating in self.user_ratings
-            ] if self.user_ratings else []
         }
